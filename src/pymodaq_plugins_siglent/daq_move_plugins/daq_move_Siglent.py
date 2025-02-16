@@ -1,14 +1,20 @@
 from typing import Union, List, Dict
+from pymodaq_plugins_siglent.hardware.siglent_wrapper import ActuatorWrapper
 
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType,\
     DataActuator  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand # object used to send info back to the main thread
 from pymodaq.utils.parameter import Parameter
+import pyvisa
 
 import sys, os
-from siglent_wrapper import ActuatorWrapper
+# from siglent_wrapper import ActuatorWrapper
 sys.path.append('c:\\Users\\attose1_VMI\\local_repository\\pymodaq_plugins_siglent\\src\\pymodaq_plugins_siglent\\daq_move_plugins')
 
+# serial_address = 'USB0::0xF4EC::0x1102::SDG7ABAD7R0103::INSTR'
+# rm = pyvisa.ResourceManager()
+# global siglent
+# siglent = rm.open_resource(serial_address)
 
 # TODO:
 # (1) change the name of the following class to DAQ_Move_TheNameOfYourChoice
@@ -40,6 +46,7 @@ class DAQ_Move_Siglent(DAQ_Move_base):
     """
     is_multiaxes = True  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
     _axis_names: Union[List[str], Dict[str, int]] = ['Amplitude', 'Phase', 'Frequency', 'Delay']  # TODO for your plugin: complete the list
+    # _controller_units = "V"
     _controller_units: Union[str, List[str]] = ['V', 'deg', 'Hz', 's']  # TODO for your plugin: put the correct unit here, it could be
     # TODO  a single str (the same one is applied to all axes) or a list of str (as much as the number of axes)
     _epsilon: Union[float, List[float]] = [0.1, 0.1, 0.1, 0.1]  # TODO replace this by a value that is correct depending on your controller
@@ -65,7 +72,7 @@ class DAQ_Move_Siglent(DAQ_Move_base):
     def ini_attributes(self):
         # #  TODO declare the type of the wrapper (and assign it to self.controller) you're going to use for easy
         # #  autocompletion
-        self.controller: ActuatorWrapper
+        self.controller: ActuatorWrapper()
 
         #TODO declare here attributes you want/need to init with a default value
 
@@ -100,11 +107,16 @@ class DAQ_Move_Siglent(DAQ_Move_base):
         """
         ## TODO for your custom plugin
         if param.name() == 'axis':
+            print("self.axis_name =", self.axis_name)
+            print("param.value() =", param.value())
             self.controller.set_axis(self.axis_name)
             pos = self.get_actuator_value()
             if self.axis_name == "Delay":
                 self.controller.set_burst(mode="ON")
+                self.controller.set_delay(time = 3e-6)
+            self.controller.set_unit()
             self.axis_unit = self.controller.get_unit()
+            print("self.axis_unit =", self.axis_unit)
             # do this only if you can and if the units are not known beforehand, for instance
             # if the motors connected to the controller are of different type (mm, µm, nm, , etc...)
             # see BrushlessDCMotor from the thorlabs plugin for an exemple

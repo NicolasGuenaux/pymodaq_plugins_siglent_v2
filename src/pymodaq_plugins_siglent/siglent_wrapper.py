@@ -93,9 +93,7 @@ class ActuatorWrapper:
         return True
     
     def get_amplitude(self):
-        print("in get_amplitude")
         answer = siglent.query(self.channel + ":BSWV?")
-        print("answer = ", answer)
         amplitude = answer.split(',')[7]    # The 7th word corresponds to the amp
         amplitude = float(amplitude[:-1])   # We skip the 'V' at the end
         print("amplitude =", amplitude)
@@ -104,9 +102,7 @@ class ActuatorWrapper:
 
     
     def get_phase(self):
-        print("in get_phase")
         answer = siglent.query(self.channel + ":BSWV?")
-        print("answer = ", answer)
         wtype = self.get_wavetype()
         if (wtype == "RAMP") or (wtype == "SQUARE"):
             phase = answer.split(',')[-3]   # The 3rd to last word corresponds to the phase
@@ -196,8 +192,6 @@ class ActuatorWrapper:
             return(self.set_phase(pos))
         elif self.axis == "Frequency":
             return(self.set_frequency(pos))
-        elif self.axis == "Delay":
-            return(self.set_delay(pos))
 
     def get_pos(self):
         if self.axis == "Amplitude":
@@ -206,19 +200,13 @@ class ActuatorWrapper:
             return(self.get_phase())
         elif self.axis == "Frequency":
             return(self.get_frequency())
-        elif self.axis == "Delay":
-            return(self.get_delay())
 
     def set_rel_pos(self, pos):
         if self.axis == "Amplitude":
             return(self.set_rel_amplitude(pos))
         elif self.axis == "Phase":
             return(self.set_rel_phase(pos))
-        elif self.axis == "Frequency":
-            return(self.set_rel_frequency(pos))
-        elif self.axis == "Delay":
-            return(self.set_rel_delay(pos))
-
+    
     def set_wavetype(self, wtype):
         self.wavetype = wtype
         siglent.write(self.channel + ":BSWV WVTP," + wtype)
@@ -247,21 +235,12 @@ class ActuatorWrapper:
         """sets the basewave frequency, in Hz"""
         siglent.write(self.channel + ":BSWV FRQ," + str(freq))
         self.frequency = freq
-
-    def set_rel_frequency(self, freq):
-        """Sets the delay, in s, only available in BTWV ext trigger mode"""
-        freq0 = self.frequency
-        self.set_frequency(freq0 + freq)
-        self.frequency = freq0 + freq
     
     def get_frequency(self):
-        print("in get_frequency")
         answer = siglent.query("C1:BSWV?")
-        print("answer = ", answer)
         freq = answer.split(",")[3]
         freq = float(freq[:-2])         # get rid of the "HZ" at the end
         self.frequency = freq
-        print("frequency =", freq)
         return(self.frequency)
     
     def set_delay(self, time):
@@ -269,15 +248,7 @@ class ActuatorWrapper:
         siglent.write(self.channel + ":BTWV DLAY," + str(time))
         self.delay = time
 
-    def set_rel_delay(self, time):
-        """Sets the delay, in s, only available in BTWV ext trigger mode"""
-        dlay = self.delay
-        self.set_delay(dlay + time)
-        self.delay = time + dlay
-
     def get_delay(self):
-        print("in get_delay")
-        print("delay =", self.delay)
         return(self.delay)
     
     def set_cycles(self, n):
